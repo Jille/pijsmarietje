@@ -391,8 +391,11 @@ PijsMarietje.prototype.fill_requestsTable = function() {
                                 : this.requests[i].mediaKey);
                 var b = (i == -1 ? this.playing.byKey
                                 : this.requests[i].byKey);
-                if(!b)
+                anonymous = false;
+                if(!b) {
                         b = 'marietje';
+                        anonymous = true;
+                }
                 var txt_a = m;
                 var txt_t = '';
                 if(this.got_media && m) {
@@ -404,9 +407,14 @@ PijsMarietje.prototype.fill_requestsTable = function() {
                                  ctime + this.media[m].length : 0));
                 tr = create_tr([b, txt_a, txt_t,
                                 (ctime == null ? '' : ctime)]);
+                if(anonymous) {
+                    $(tr).addClass('anonymous');
+                }
                 $(tr).data('offset', ctime);
-                if(i == -1)
+                if(i == -1) {
                         $(tr).data('key', null);
+                        $(tr).addClass('nowPlaying');
+                }
                 else
                         $(tr).data('key', this.requests[i].key);
                 $('td:eq(0)',tr).addClass('by');
