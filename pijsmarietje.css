@@ -69,10 +69,20 @@ body {
         white-space: nowrap;
 }
 
-#requestsTable .by { width: 10% }
-#requestsTable .artist { width: 40% }
-#requestsTable .title { width: 40% }
-#requestsTable .time { width: 10% }
+#requestsTable .by { width: 10%; }
+#requestsTable .artist { width: 35%; }
+#requestsTable .title { width: 35%; }
+#requestsTable .time { width: 10%; }
+#requestsTable .toolbox {
+        text-align: right;
+        width: 10%;
+        white-space: nowrap;
+        padding: 1px 1px;
+        font-size: 62.5%;
+}
+button.useless {
+        visibility: hidden;
+}
 
 #resultsTable .artist { width: 50% }
 #resultsTable .title { width: 50% }
@@ -89,10 +99,10 @@ body {
         text-align: right;
 }
 #requestsTable .anonymous td {
-		color: #666666;
+        color: #666666;
 }
 #requestsTable .nowPlaying {
-		background-color: #00ff00;
+        background-color: #00ff00;
 }
 
 #queryBar {
@@ -103,15 +113,4 @@ body {
 #queryField {
         width: 100%;
         text-align: center;
-}
-
-/*
- * Toolboxes
- */
-#requestsToolbox {
-        position: absolute;
-        white-space: nowrap;
-        z-index: 10;
-        padding: 1px 1px;
-        font-size: 62.5%
 }

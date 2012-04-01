@@ -27,6 +27,34 @@ function create_tr(data) {
         return n_tr;
 };
 
+function create_toolbox(key, that) {
+    var buttons, i;
+    if(key == null) {
+        buttons = [['skip', 'Skip', 'ui-icon-seek-next', {'type': 'skip_playing'}]];
+    } else {
+        buttons = [
+            ['up', 'Move up', 'ui-icon-circle-arrow-n', {'type': 'move_request', 'key': key, 'amount': -1}],
+            ['down', 'Move down', 'ui-icon-circle-arrow-s', {'type': 'move_request', 'key': key, 'amount': 1}],
+            ['del', 'Cancel', 'ui-icon-circle-close', {'type': 'cancel_request', 'key': key}],
+        ];
+    }
+    var n_td = document.createElement('td');
+    for(i = 0; buttons.length > i; i++) {
+        var btn = document.createElement('button');
+        (function() {
+            var data = buttons[i];
+            btn.appendChild(document.createTextNode(data[1]));
+            $(btn).addClass(data[0]);
+            $(btn).button({ icons: {primary: data[2]}, text: false });
+            $(btn).click(function() {
+                            that.channel.send_message(data[3]);
+            });
+        })();
+        n_td.appendChild(btn);
+    }
+    return n_td;
+}
+
 function zpad_left(tmp, n) {
         var pad = '';
         for (var i = tmp.length; i < n; i++)
@@ -86,12 +114,6 @@ function PijsMarietje() {
         this.scroll_semaphore = 0;
         this.results_offset = null;
         this.mainTabShown = true;
-
-        this.showing_requestsToolbox = false;
-        this.mouse_on_requestsToolbox = false;
-        this.mouse_on_requestsBar = false;
-        this.requestsToolbox_key = null;
-        this.requestsToolbox_over_playing = false;
 
         this.msg_map = {
                 'welcome': this.msg_welcome,
@@ -417,44 +439,19 @@ PijsMarietje.prototype.fill_requestsTable = function() {
                 }
                 else
                         $(tr).data('key', this.requests[i].key);
-                $('td:eq(0)',tr).addClass('by');
-                $('td:eq(1)',tr).addClass('artist');
-                $('td:eq(2)',tr).addClass('title');
-                $('td:eq(3)',tr).addClass('time');
-                $(tr).mouseenter(function(event) {
-                        if($(this).data('key') == null
-                                        && !that.requestsToolbox_over_playing) {
-                                $('#requestsToolbox > .up').hide();
-                                $('#requestsToolbox > .down').hide();
-                                $('#requestsToolbox > .del').hide();
-                                $('#requestsToolbox > .skip').show();
-                                that.requestsToolbox_over_playing = true;
-                        } else if ($(this).data('key') != null  &&
-                                        that.requestsToolbox_over_playing) {
-                                $('#requestsToolbox > .up').show();
-                                $('#requestsToolbox > .down').show();
-                                $('#requestsToolbox > .del').show();
-                                $('#requestsToolbox > .skip').hide();
-                                that.requestsToolbox_over_playing = false;
-                        }
-                        if(!that.showing_requestsToolbox) {
-                                that.showing_requestsToolbox = true;
-                                $('#requestsToolbox').show();
-                        }
-                        $('#requestsToolbox').css({
-                                'top': $(this).position().top
-                                        + .5 * ($(this).height()
-                                        - 2*$('#requestsToolbox').height()
-                                        + $('#requestsToolbox > .up').height()),
-                                'left': $(this).position().left
-                                        + $(this).width()
-                                        - $('#requestsToolbox').width()
-                        }, 'fast');
-                        console.log($(this).position().left + $(this).width());
-                        that.requestsToolbox_key = $(this).data('key');
-                });
+                var tbx = create_toolbox($(tr).data('key'), that);
+                tr.appendChild(tbx);
+                $('td:eq(0)', tr).addClass('by');
+                $('td:eq(1)', tr).addClass('artist');
+                $('td:eq(2)', tr).addClass('title');
+                $('td:eq(3)', tr).addClass('time');
+                $('td:eq(4)', tr).addClass('toolbox');
+                if(i == 0) {
+                    $('td:eq(4) .up', tr).addClass('useless');
+                }
                 t.append(tr);
         }
+        $('td:eq(4) .down', tr).addClass('useless');
         this.update_times();
 };
 
@@ -634,73 +631,8 @@ PijsMarietje.prototype.setup_ui = function() {
                 that.on_scroll();
         });
 
-        // Button
-        $('#requestsToolbox > .up').button(
-                        { icons: { primary: 'ui-icon-circle-arrow-n'},
-                          text: false }).click(function(){
-                that.channel.send_message({
-                        'type': 'move_request',
-                        'amount': -1,
-                        'key': that.requestsToolbox_key
-                });
-        });
-        $('#requestsToolbox > .down').button(
-                        { icons: { primary: 'ui-icon-circle-arrow-s'},
-                          text: false }).click(function(){
-                that.channel.send_message({
-                        'type': 'move_request',
-                        'amount': 1,
-                        'key': that.requestsToolbox_key
-                });
-        });
-        $('#requestsToolbox > .del').button(
-                        { icons: { primary: 'ui-icon-circle-close' },
-                          text: false }).click(function(){
-                that.channel.send_message({
-                        'type': 'cancel_request',
-                        'key': that.requestsToolbox_key
-                });
-        });
-        $('#requestsToolbox > .skip').button(
-                        { icons: { primary: 'ui-icon-seek-next' },
-                          text: false }).click(function(){
-                that.channel.send_message({
-                        'type': 'skip_playing'
-                });
-        }).hide();
-
-        $('#requestsToolbox').mouseenter(function(event){
-                that.mouse_on_requestsToolbox = true;
-        });
-        $('#requestsToolbox').mouseleave(function(event){
-                that.mouse_on_requestsToolbox = false;
-                setTimeout(function() {
-                        if(!that.mouse_on_requestsBar) {
-                                that.hide_requestsToolbox();
-                        }
-                },0);
-        });
-        $('#requestsBar').mouseenter(function(event){
-                that.mouse_on_requestsBar = true;
-        });
-        $('#requestsBar').mouseleave(function(event){
-                that.mouse_on_requestsBar = false;
-                setTimeout(function() {
-                        if(!that.mouse_on_requestsToolbox) {
-                                that.hide_requestsToolbox();
-                        }
-                },0);
-        });
-        $('#requestsToolbox').hide();
-
         this.focus_queryField();
 }; 
-
-PijsMarietje.prototype.hide_requestsToolbox = function() {
-        $('#requestsToolbox').hide();
-        this.showing_requestsToolbox = false;
-        this.requestsToolbox_key = null;
-};
 
 PijsMarietje.prototype.focus_queryField = function() {
         $('#queryField').focus();
