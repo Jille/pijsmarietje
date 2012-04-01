@@ -18,9 +18,9 @@ if(typeof console == 'undefined')
 //
 
 function create_tr(data) {
-        n_tr = document.createElement('tr');
+        var n_tr = document.createElement('tr');
         for(var i = 0; i < data.length; i++) {
-                n_td = document.createElement('td');
+                var n_td = document.createElement('td');
                 n_td.appendChild(document.createTextNode(data[i]));
                 n_tr.appendChild(n_td);
         }
